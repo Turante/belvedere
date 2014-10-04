@@ -239,7 +239,7 @@ AddRule:
 	Gui, 2: Add, Groupbox, x443 y10 w110 h80, Rule Options
 	Gui, 2: Add, Text, x32 y92 w520 h20 , __________________________________________________________________________________________
 	Gui, 2: Add, Text, x32 y122 w10 h20 , If
-	Gui, 2: Add, DropDownList, x45 y120 w46 h20 r2 vMatches , ALL||ANY
+	Gui, 2: Add, DropDownList, x45 y118 w46 h20 r2 vMatches , ALL||ANY
 	Gui, 2: Add, Text, x96 y122 w240 h20 , of the following conditions are met:
 	Gui, 2: Add, DropDownList, x32 y152 w160 h20 r6 vGUISubject gSetVerbList , %AllSubjects%
 	Gui, 2: Add, DropDownList, x202 y152 w160 h21 r6 vGUIVerb , %NameVerbs%
@@ -247,12 +247,12 @@ AddRule:
 	Gui, 2: Add, DropDownList, x445 y152 vGUIUnits w60 ,
 	GuiControl, 2: Hide, GUIUnits
 	Gui, 2: Add, Button, vGUINewLine x515 y152 w20 h20 gNewLine , +
-	Gui, 2: Add, Text, x32 y212 w260 h20 vConsequence , Do the following:
+	Gui, 2: Add, Text, x32 y218 w260 h20 vConsequence , Do the following:
 	Gui, 2: Add, DropDownList, x32 y242 w160 h20 vGUIAction gSetDestination r6 , %AllActions%
 	Gui, 2: Add, Text, x202 y242 h20 w45 vActionTo , to folder:
 	Gui, 2: Add, Edit, x248 y242 w190 h20 vGUIDestination , 
 	Gui, 2: Add, Button, x450 y242 gChooseFolder vGUIChooseFolder h20, ...
-	Gui, 2: Add, Checkbox, x482 y242 vOverwrite, Overwrite?
+	Gui, 2: Add, Checkbox, x482 y244 vOverwrite, Overwrite?
 	Gui, 2: Add, Button, x32 y302 w100 h30 vTestButton gTESTMatches, Test
 	Gui, 2: Add, Button, x372 y302 w100 h30 vOKButton gSaveRule, OK
 	Gui, 2: Add, Button, x482 y302 w100 h30 vCancelButton gGui2Close, Cancel
@@ -472,7 +472,15 @@ NewLine:
 	{
 		LineNum := 1
 	}
-	height := (LineNum * 30) + 152
+	row := 1
+	if (LineNum<1)
+		LineNum := 1
+	Loop, %LineNum%
+	{
+		GuiControlGet, output, Visible, GUINewLine%A_Index%
+		row += output
+	}
+	height := (row * 30) + 152
 	Gui, 2: Add, DropDownList, x32 y%height% w160 h20 r6 vGUISubject%LineNum% gSetVerbList , %AllSubjects%
 	Gui, 2: Add, DropDownList, x202 y%height% w160 h21 r6 vGUIVerb%LineNum% , %NameVerbs%
 	Gui, 2: Add, Edit, x372 y%height% w140 h20 vGUIObject%LineNum% , 
@@ -482,31 +490,42 @@ NewLine:
 	Gui, 2: Add, Button, vGUIRemLine%LineNum% x535 y%height% w20 h20 gRemLine , - 
 
 	; now extend the size of the window
-	GuiControl, 2: Move, Consequence , % "y" LineNum * 30 + 212
-	GuiControl, 2: Move, GUIAction, % "y" LineNum * 30 + 242
-	GuiControl, 2: Move, ActionTo, % "y" LineNum * 30 + 242
-	GuiControl, 2: Move, GUIDestination, % "y" LineNum * 30 + 242
-	GuiControl, 2: Move, GUIChooseFolder,% "y" LineNum * 30 + 242
-	GuiControl, 2: Move, Overwrite, % "y" LineNum * 30 + 242
-	GuiControl, 2: Move, TestButton, % "y" LineNum * 30 + 302
-	GuiControl, 2: Move, OKButton, % "y" LineNum * 30 + 302
-	GuiControl, 2: Move, CancelButton, % "y" LineNum * 30 + 302
-	Gui, 2: Show, % "h" LineNum * 30 + 348
+	GuiControl, 2: MoveDraw, Consequence , % "y" row * 30 + 212
+	GuiControl, 2: MoveDraw, GUIAction, % "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, ActionTo, % "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, GUIDestination, % "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, GUIChooseFolder,% "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, Overwrite, % "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, TestButton, % "y" row * 30 + 302
+	GuiControl, 2: MoveDraw, OKButton, % "y" row * 30 + 302
+	GuiControl, 2: MoveDraw, CancelButton, % "y" row * 30 + 302
+	Gui, 2: Show, % "h" row * 30 + 348
 
 	LineNum++
 	NumOfRules++
 return
 
+F1::
+	row := 1
+	if (LineNum<1)
+		LineNum := 1
+	Loop, %LineNum%
+	{
+		GuiControlGet, output, 2:Visible, GUINewLine%A_Index%
+		row += output
+	}
+Msgbox LN=%LineNum%`nRow=%Row%
+return
+
 RemLine:
 	NumOfRules--
 	LaunchedBy = %A_GuiControl%
-	StringRight, GUILineNum, LaunchedBy, 1
+	StringTrimLeft, GUILineNum, LaunchedBy, 10
 	if (GUILineNum = "e")
 	{
 		GUILineNum =
 	}
 	Skip = %Skip%,%GUILineNum%
-	;msgbox, %guilinenum% 
 	GuiControl, 2: Hide, GUISubject%GUILineNum%
 	GuiControl, 2: Hide, GUIVerb%GUILineNum%
 	GuiControl, 2: Hide, GUIObject%GUILineNum%
@@ -515,6 +534,50 @@ RemLine:
 	GuiControl, 2: Hide, GUIRemLine%GUILineNum%
 	;GuiControl, 2: Hide, GUIUnits%GUILineNum%
 	GuiControl, 2:, GUISubject%GUILineNum%, |
+	
+	; Reshuffle controls' position
+	row := 1
+	if (LineNum<1)
+		LineNum := 1
+	Loop, %LineNum%
+	{
+		next := A_Index
+		GuiControlGet, output, 2:Visible, GUINewLine%A_Index%
+		row += output
+		visiblecheck:
+		if (output==0)
+		{
+			next++
+			if (next>LineNum)
+				break
+			GuiControlGet, output, 2:Visible, GUINewLine%next%
+			goto visiblecheck
+		}
+		else
+		{
+			height := ((row-1) * 30) + 152
+			GuiControl, 2: MoveDraw, GUISubject%next%, x32 y%height%
+			GuiControl, 2: MoveDraw, GUIVerb%next%, x202 y%height%
+			GuiControl, 2: MoveDraw, GUIObject%next%, x372 y%height%
+			GuiControl, 2: MoveDraw, GUIUnits%next%, x445 y%height%
+			GuiControl, 2: MoveDraw, GUINewLine%next%, x515 y%height%
+			GuiControl, 2: MoveDraw, GUIRemLine%next%, x535 y%height%
+			continue
+		}
+	}
+	
+	; now extend the size of the window
+	row--
+	GuiControl, 2: MoveDraw, Consequence , % "y" row * 30 + 212
+	GuiControl, 2: MoveDraw, GUIAction, % "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, ActionTo, % "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, GUIDestination, % "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, GUIChooseFolder,% "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, Overwrite, % "y" row * 30 + 242
+	GuiControl, 2: MoveDraw, TestButton, % "y" row * 30 + 302
+	GuiControl, 2: MoveDraw, OKButton, % "y" row * 30 + 302
+	GuiControl, 2: MoveDraw, CancelButton, % "y" row * 30 + 302
+	Gui, 2: Show, % "h" row * 30 + 348
 return
 
 SetDestination:

@@ -1,4 +1,4 @@
-;
+﻿;
 ; AutoHotkey Version: 1.x
 ; Language:       English
 ; Platform:       Windows
@@ -309,7 +309,7 @@ Loop
 
 SetVars:
 	APPNAME = Belvedere
-	Version = 0.4
+	Version = 0.4.1
 	AllSubjects = Name||Extension|Size|Date last modified|Date last opened|Date created|
 	NoDefaultSubject = Name|Extension|Size|Date last modified|Date last opened|Date created|
 	NameVerbs = is||is not|matches one of|does not match one of|contains|does not contain|
@@ -386,18 +386,21 @@ return
 
 ABOUT:
 	Gui,4: Destroy
-	Gui,4: +owner
-	Gui,4: Add,Picture,x45 y0,%BelvederePNG%
-	Gui,4: font, s8, Courier New
-	Gui,4: Add, Text,x275 y235,%Version%
-	Gui,4: font, s9, Arial 
-	Gui,4: Add,Text,x10 y250 Center,Belvedere is an automated file managment application`nthat performs actions on files based on user-defined criteria.`nFor example, if a file in your downloads folder`nhasn't been opened in 4 weeks and it's larger than 10MB,`nyou can tell Belvedere to automatically send it to the Recycle Bin.`n`nBelvedere is written by Adam Pash and distributed`nby Lifehacker under the GNU Public License.`nFor details on how to use Belvedere, check out the
-	Gui,4:Font,underline bold
-	Gui,4:Add,Text,cBlue gHomepage Center x115 y385,Belvedere homepage
-	Gui,4:Add,Text,cBlue gWCHomepage Center x105 y400,Icon design by What Cheer
-	Gui,4: Color,F8FAF0
-	;Gui 2:+Disabled
-	Gui,4: Show,auto,About Belvedere
+	Gui,4: +Owner
+	Gui,4: Color, F8FAF0
+	GUi,4: Margin, 20, 10
+	Gui,4: Add, Picture, Section, %BelvederePNG%
+	Gui,4: Font, s8, Courier New
+	Gui,4: Add, Text, x230 y+-30, v%Version%
+	Gui,4: Font, s9, Arial 
+	Gui,4: Add, Text, xs Center w260, Belvedere is an automated file management application that performs actions on files based on user-defined criteria.
+	Gui,4: Add, Text, xs Center w260, For example, if a file in your downloads folder hasn't been opened in 4 weeks and it's larger than 10MB, you can tell Belvedere to automatically send it to the Recycle Bin.
+	Gui,4: Add, Text, xs Center w260, Belvedere is written by Adam Pash and distributed by Lifehacker under the GNU Public License.
+	Gui,4: Add, Text, xs Center w260, For details on how to use Belvedere, check out:
+	Gui,4: Font, cBlue Underline Bold
+	Gui,4: Add, Text, xs Center w260 gHOMEPAGE, Belvedere Homepage
+	Gui,4: Add, Text, xs Center w260 gWCHOMEPAGE, Icon design by What Cheer
+	Gui,4: Show, AutoSize, About Belvedere
 Return
 
 #Include includes\verbs.ahk
