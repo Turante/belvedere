@@ -704,7 +704,9 @@ SaveRule:
 		{
 			IfNotExist, %GUIDestination%
 			{
-				Msgbox, %GUIDestination% is not a real folder.
+				Msgbox, 52, Folder Doesn't Exist!, %GUIDestination% is not a real folder.`nDo you want to create it now?
+				IfMsgBox Yes
+					FileCreateDir, %GUIDestination%
 				return
 			}
 		}
@@ -828,7 +830,9 @@ TESTMatches:
 		{
 			IfNotExist, %GUIDestination%
 			{
-				Msgbox, %GUIDestination% is not a real folder.
+				Msgbox, 52, Folder Doesn't Exist!, %GUIDestination% is not a real folder.`nDo you want to create it now?
+				IfMsgBox Yes
+					FileCreateDir, %GUIDestination%
 				return
 			}
 		}
