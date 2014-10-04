@@ -22,6 +22,7 @@ IniRead, Folders, rules.ini, Folders, Folders
 IniRead, FolderNames, rules.ini, Folders, FolderNames
 IniRead, AllRuleNames, rules.ini, Rules, AllRuleNames
 IniRead, SleepTime, rules.ini, Preferences, SleepTime
+IniRead, Traytip, rules.ini, Preferences, Traytip
 if (AllRuleNames = "ERROR")
 {
 	AllRuleNames=
@@ -59,6 +60,7 @@ Loop
 		IniRead, Enabled, rules.ini, %thisRule%, Enabled
 		IniRead, ConfirmAction, rules.ini, %thisRule%, ConfirmAction, 0
 		IniRead, Recursive, rules.ini, %thisRule%, Recursive, 0
+		IniRead, Mirror, rules.ini, %thisRule%, Mirror, 0
 		IniRead, Action, rules.ini, %thisRule%, Action
 		IniRead, Destination, rules.ini, %thisRule%, Destination, 0
 		IniRead, Matches, rules.ini, %thisRule%, Matches
@@ -261,7 +263,19 @@ Loop
 				}
 				if (Action = "Move file") or (Action = "Rename file")
 				{
-					move(file, Destination, Overwrite)
+					StringLen, out1, A_LoopFileDir
+					StringLen, out2, Folder
+					out2-=1
+					count := out1-out2
+					if (count>0)
+					{
+						StringRight, out3, A_LoopFileDir, count
+						MirrorDestination = %Destination%\%out3%
+					}
+					if (Mirror == 1)
+						mirrormove(file, MirrorDestination, Overwrite, Traytip)
+					else
+						move(file, Destination, Overwrite, Traytip)
 					if errorCheck
 					{
 						errorCheck := 0
@@ -270,16 +284,32 @@ Loop
 				}
 				else if (Action = "Send file to Recycle Bin")
 				{
+					if (Traytip == 1)
+						TrayTip, %APPNAME% - Recycling, %fileName%, 1, 1
 					recycle(file)
 				}
 				else if (Action = "Delete file")
 				{
+					if (Traytip == 1)
+						TrayTip, %APPNAME% - Deleting, %fileName%, 1, 1
 					;msgbox, delete it!
 					delete(file)
 				}
 				else if (Action = "Copy file")
 				{
-					copy(file, Destination, Overwrite)
+					StringLen, out1, A_LoopFileDir
+					StringLen, out2, Folder
+					out2-=1
+					count := out1-out2
+					if (count>0)
+					{
+						StringRight, out3, A_LoopFileDir, count
+						MirrorDestination = %Destination%\%out3%
+					}
+					if (Mirror == 1)
+						mirrorcopy(file, MirrorDestination, Overwrite, Traytip)
+					else
+						copy(file, Destination, Overwrite, Traytip)
 					if errorCheck
 					{
 						errorCheck := 0
@@ -288,11 +318,14 @@ Loop
 				}
 				else if (Action = "Open file")
 				{
+					if (Traytip == 1)
+						TrayTip, %APPNAME%, Opening: %fileName%, 1, 1
 					Run, %file%
 				}
 				else
 				{
-					Msgbox, You've detemerined no action to take.
+					if (Traytip == 1)
+						TrayTip, %APPNAME%, No action to take..., 1, 1
 				}
 			}
 			else
@@ -309,7 +342,7 @@ Loop
 
 SetVars:
 	APPNAME = Belvedere
-	Version = 0.4.3
+	Version = 0.4.5
 	AllSubjects = Name||Extension|Size|Date last modified|Date last opened|Date created|
 	NoDefaultSubject = Name|Extension|Size|Date last modified|Date last opened|Date created|
 	NameVerbs = is||is not|matches one of|does not match one of|contains|does not contain|
@@ -335,6 +368,7 @@ SetVars:
 	FileInstall, resources\both.png, resources\both.png
 	Menu, TRAY, Icon, resources\belvedere.ico
 	BelvederePNG = resources\both.png
+	Sleep 200
 return
 
 BuildINI:
@@ -343,6 +377,7 @@ BuildINI:
 		IniWrite,%A_Space%,rules.ini, Folders, Folders
 		IniWrite,%A_Space%,rules.ini, Rules, AllRuleNames
 		IniWrite,300000,rules.ini, Preferences, Sleeptime
+		IniWrite,0,rules.ini, Preferences, Traytip
 		IniWrite,0,rules.ini, Preferences, RBEnable
 	}
 return

@@ -63,12 +63,15 @@ MANAGE:
 	
 	;Items found on Third Tab
 	IniRead, Sleep, rules.ini, Preferences, Sleeptime
+	IniRead, Traytip, rules.ini, Preferences, Traytip
 	Gui, Tab, 3
 	Gui, 1: Add, Text, x62 y62 w60 h20 , Sleeptime:
 	Gui, 1: Add, Edit, x120 y60 w100 h20 Number vSleep, %Sleep%
-	Gui, 1: Add, Text, x225 y62, (Time in milliseconds)
-	Gui, 1: Add, Button, x62 y382 h30 vSavePrefs gSavePrefs, Save Preferences
+	Gui, 1: Add, Text, x225 y62, (Time in milliseconds, 1 second = 1000 milliseconds)
+	Gui, 1: Add, Text, x62 y90, TrayTip
+	Gui, 1: Add, Checkbox, x120 y90 vTraytip Checked%Traytip%, (Shows a popup whenever a file is being processed)
 	
+	Gui, 1: Add, Button, x62 y382 h30 vSavePrefs gSavePrefs, Save Preferences
 	Gui, 1: Show, h443 w724, %APPNAME% Rules
 Return
 
@@ -233,11 +236,12 @@ AddRule:
 	Gui, 2: Add, Text, x52 y32 h20 , Folder: %ActiveFolder%
 	Gui, 2: Add, Text, x32 y62 w60 h20 , Description:
 	Gui, 2: Add, Edit, x92 y62 w250 h20 vRuleName , 
-	Gui, 2: Add, Checkbox, x448 y30 vEnabled, Enabled
-	Gui, 2: Add, Checkbox, x448 y50 vConfirmAction, Confirm Action
-	Gui, 2: Add, Checkbox, x448 y70 vRecursive, Recursive
-	Gui, 2: Add, Groupbox, x443 y10 w110 h80, Rule Options
-	Gui, 2: Add, Text, x32 y92 w520 h20 , __________________________________________________________________________________________
+	Gui, 2: Add, Checkbox, x448 y28 vEnabled, Enabled
+	Gui, 2: Add, Checkbox, x448 y48 vConfirmAction, Confirm Action
+	Gui, 2: Add, Checkbox, x448 y68 vRecursive, Recursive
+	Gui, 2: Add, Checkbox, x448 y88 vMirror, Mirror Structure	; https://github.com/adampash/belvedere/issues/4
+	Gui, 2: Add, Groupbox, x443 y10 w110 h100 BackgroundTrans, Rule Options
+	Gui, 2: Add, Text, x32 y96 w520 h20 BackgroundTrans, __________________________________________________________________________________________
 	Gui, 2: Add, Text, x32 y122 w10 h20 , If
 	Gui, 2: Add, DropDownList, x45 y118 w46 h20 r2 vMatches , ALL||ANY
 	Gui, 2: Add, Text, x96 y122 w240 h20 , of the following conditions are met:
@@ -300,6 +304,7 @@ EditRule:
 	IniRead, Enabled, rules.ini, %ActiveRule%, Enabled
 	IniRead, ConfirmAction, rules.ini, %ActiveRule%, ConfirmAction
 	IniRead, Recursive, rules.ini, %ActiveRule%, Recursive
+	IniRead, Mirror, rules.ini, %ActiveRule%, Mirror
 	Gui, 2: Destroy
 	Gui, 2: +owner1
 	Gui, 2: +toolwindow
@@ -309,8 +314,9 @@ EditRule:
 	Gui, 2: Add, Checkbox, x448 y30 Checked%Enabled% vEnabled, Enabled
 	Gui, 2: Add, Checkbox, x448 y50 Checked%ConfirmAction% vConfirmAction, Confirm Action
 	Gui, 2: Add, Checkbox, x448 y70 Checked%Recursive% vRecursive, Recursive
-	Gui, 2: Add, Groupbox, x443 y10 w110 h80, Rule Options
-	Gui, 2: Add, Text, x32 y92 w520 h20 , __________________________________________________________________________________________
+	Gui, 2: Add, Checkbox, x448 y90 Checked%Mirror% vMirror, Mirror Structure
+	Gui, 2: Add, Groupbox, x443 y10 w110 h100 BackgroundTrans, Rule Options
+	Gui, 2: Add, Text, x32 y96 w520 h20 BackgroundTrans, __________________________________________________________________________________________
 	Gui, 2: Add, Text, x32 y122 w10 h20 , If
 	StringReplace, thisMatchList, MatchList, %Matches%, %Matches%|
 	Gui, 2: Add, DropDownList, x45 y120 w46 h20 r2 vMatches , %thisMatchList%
@@ -503,18 +509,6 @@ NewLine:
 
 	LineNum++
 	NumOfRules++
-return
-
-F1::
-	row := 1
-	if (LineNum<1)
-		LineNum := 1
-	Loop, %LineNum%
-	{
-		GuiControlGet, output, 2:Visible, GUINewLine%A_Index%
-		row += output
-	}
-Msgbox LN=%LineNum%`nRow=%Row%
 return
 
 RemLine:
@@ -719,6 +713,7 @@ SaveRule:
 	IniWrite, %Enabled%, rules.ini, %RuleName%, Enabled
 	IniWrite, %ConfirmAction%, rules.ini, %RuleName%, ConfirmAction
 	IniWrite, %Recursive%, rules.ini, %RuleName%, Recursive
+	IniWrite, %Mirror%, rules.ini, %RuleName%, Mirror
 	IniWrite, %Matches%, rules.ini, %RuleName%, Matches
 	IniWrite, %GUIAction%, rules.ini, %RuleName%, Action
 	IniWrite, %GUIDestination%, rules.ini, %RuleName%, Destination
@@ -768,7 +763,10 @@ SaveRule:
 return
 
 TESTMatches:
-	matchFiles =
+	mir :=
+	nomatch :=
+	matchFiles :=
+	forcedbreak :=
 	Gui, 2: Submit, NoHide
 	if (RuleName = "")
 	{
@@ -889,8 +887,12 @@ TESTMatches:
 	; Now loop through the folder to test for matches
 	Loop %Folder%, 0, %Recursive%
 	{
+		if (forcedbreak==1)
+			break
 		Loop
 		{
+			if (forcedbreak==1)
+				break
 			if ((A_Index - 1) = NumOfRules)
 			{
 				break
@@ -939,9 +941,15 @@ TESTMatches:
 			else
 			{
 				MsgBox, Subject does not have a match
+				nomatch++
 				;msgbox, % subject %rulenum%
 			}
-			
+			if (nomatch > 3)
+			{
+				MsgBox, 16, Subject does not have a match, Please recheck your rules configuration!
+				forcedbreak := 1
+				;https://github.com/adampash/belvedere/issues/1
+			}
 			testUnits = % Units%RuleNum%
 			; Below determines the comparison verb
 			if (Verb%RuleNum% = "contains")
@@ -1037,11 +1045,27 @@ TESTMatches:
 		;msgbox, %result%
 		if result
 		{
+			StringLen, out1, A_LoopFileDir
+			StringLen, out2, ActiveFolder
+			count := out1-out2-1
+			if (count>0)
+			{
+				mir++
+				StringRight, out3, A_LoopFileDir, count
+				fol = %GUIDestination%\%out3%
+				if mirr is space
+					mirr = %fol%
+				else
+					mirr = %mirr%|%fol%
+			}
 			results++
+			if matchFiles is space
+				matchFiles = %fileName%
 			if fileName is not space
 				matchFiles = %matchFiles%|%fileName%
 		}
 	}
+	Sort, mirr, U D|
 	ElapsedTime := A_TickCount - StartTime
 	if (matchFiles != "")
 	{
@@ -1049,7 +1073,10 @@ TESTMatches:
 		StringLeft, output, matchFiles, 1
 		if (output == "|")
 			StringTrimLeft, matchFiles, matchFiles, 1
-		Gui, 7:Add, ListBox, x12 y10 w400 h340, %matchFiles%|||============ STATISTICS ============|Target folder: %ActiveFolder%|Files matched: %results% files|Time required: %ElapsedTime% miliseconds
+		if mirr is not space
+			Gui, 7:Add, ListBox, x12 y10 w400 h340, %matchFiles%| | | |>> The following folders will be automatically created:|%mirr%| | | |============ STATISTICS ============|Target folder: %ActiveFolder%|Mirrored structure: %mir% folders|Files matched: %results% files|Time required: %ElapsedTime% miliseconds||
+		else
+			Gui, 7:Add, ListBox, x12 y10 w400 h340, %matchFiles%| | | |============ STATISTICS ============|Target folder: %ActiveFolder%|Files matched: %results% files|Time required: %ElapsedTime% miliseconds||
 		Gui, 7:Add, Button, x158 y350 w100 h30 Default g7GuiClose, Close
 		; Generated using SmartGUI Creator for SciTE
 		Gui, 7:Show, AutoSize, %APPNAME% Test Matches
@@ -1075,7 +1102,9 @@ SavePrefs:
 	Gui, 1: Submit, NoHide
 	SleepTime := Sleep
 	IniWrite, %Sleep%, rules.ini, Preferences, Sleeptime
-	MsgBox,,Saved Settings, Your settings have been saved.
+	IniWrite, %Traytip%, rules.ini, Preferences, Traytip
+	MsgBox,64,Saved Settings, Your settings have been saved!
+	reload
 return
 
 RBSavePrefs:
