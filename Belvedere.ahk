@@ -309,7 +309,7 @@ Loop
 
 SetVars:
 	APPNAME = Belvedere
-	Version = 0.4.1
+	Version = 0.4.3
 	AllSubjects = Name||Extension|Size|Date last modified|Date last opened|Date created|
 	NoDefaultSubject = Name|Extension|Size|Date last modified|Date last opened|Date created|
 	NameVerbs = is||is not|matches one of|does not match one of|contains|does not contain|

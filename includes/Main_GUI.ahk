@@ -254,7 +254,7 @@ AddRule:
 	Gui, 2: Add, Button, x450 y242 gChooseFolder vGUIChooseFolder h20, ...
 	Gui, 2: Add, Checkbox, x482 y244 vOverwrite, Overwrite?
 	Gui, 2: Add, Button, x32 y302 w100 h30 vTestButton gTESTMatches, Test
-	Gui, 2: Add, Button, x372 y302 w100 h30 vOKButton gSaveRule, OK
+	Gui, 2: Add, Button, x372 y302 w100 h30 vOKButton gSaveRule Default, OK
 	Gui, 2: Add, Button, x482 y302 w100 h30 vCancelButton gGui2Close, Cancel
 	; Generated using SmartGUI Creator 4.0
 	Gui, 2: Show, h348 w598, Create a rule...
@@ -789,7 +789,7 @@ TESTMatches:
 	; for testing below
 	Folder = %ActiveFolder%\*
 	Matches = %Matches%
-	
+	StartTime := A_TickCount
 	Loop
 	{
 		if (A_Index > LineNum)
@@ -1035,21 +1035,34 @@ TESTMatches:
 			}
 		}
 		;msgbox, %result%
-		;Msgbox, result is %result%
 		if result
 		{
-			;Msgbox, match %fileName%
-			matchFiles = %fileName%, %matchFiles%
+			results++
+			if fileName is not space
+				matchFiles = %matchFiles%|%fileName%
 		}
 	}
-	
+	ElapsedTime := A_TickCount - StartTime
 	if (matchFiles != "")
 	{
-		Msgbox,,%APPNAME% Test Matches, This rule matches the following file(s): `n %matchFiles%
+		;Msgbox,,, This rule matches the following file(s): `n %matchFiles%
+		StringLeft, output, matchFiles, 1
+		if (output == "|")
+			StringTrimLeft, matchFiles, matchFiles, 1
+		Gui, 7:Add, ListBox, x12 y10 w400 h340, %matchFiles%|||============ STATISTICS ============|Target folder: %ActiveFolder%|Files matched: %results% files|Time required: %ElapsedTime% miliseconds
+		Gui, 7:Add, Button, x158 y350 w100 h30 Default g7GuiClose, Close
+		; Generated using SmartGUI Creator for SciTE
+		Gui, 7:Show, AutoSize, %APPNAME% Test Matches
+		results :=
+		return
+
+		7GuiClose:
+		Gui, 7:Destroy
+		return
 	}
 	else
 	{
-		Msgbox,,%APPNAME% Test Matches, No matches were found
+		Msgbox,,%APPNAME% Test Matches, No matches were found!
 	}
 return
 
