@@ -256,6 +256,7 @@ Loop
 			;Msgbox, result is %result%
 			if result
 			{
+				MirrorDestination :=
 				if (ConfirmAction = 1)
 				{
 					MsgBox, 4, Action Confirmation, Are you sure you want to %Action% %fileName% because of rule %thisRule%?

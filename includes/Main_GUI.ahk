@@ -767,10 +767,7 @@ SaveRule:
 return
 
 TESTMatches:
-	mir :=
-	nomatch :=
-	matchFiles :=
-	forcedbreak :=
+	mir := mirr := nomatch := matchFiles := forcedbreak :=
 	Gui, 2: Submit, NoHide
 	if (RuleName = "")
 	{
