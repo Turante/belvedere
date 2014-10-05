@@ -61,6 +61,7 @@ Loop
 		IniRead, ConfirmAction, rules.ini, %thisRule%, ConfirmAction, 0
 		IniRead, Recursive, rules.ini, %thisRule%, Recursive, 0
 		IniRead, Mirror, rules.ini, %thisRule%, Mirror, 0
+		IniRead, OneTime, rules.ini, %thisRule%, OneTime, 0
 		IniRead, Action, rules.ini, %thisRule%, Action
 		IniRead, Destination, rules.ini, %thisRule%, Destination, 0
 		IniRead, Matches, rules.ini, %thisRule%, Matches
@@ -103,7 +104,7 @@ Loop
 		{
 			Loop
 			{
-				if ((A_Index - 1) = NumOfRules)
+				if ((A_Index - 1) >= NumOfRules)
 				{
 					break
 				}
@@ -276,7 +277,7 @@ Loop
 						mirrormove(file, MirrorDestination, Overwrite, Traytip)
 					else
 						move(file, Destination, Overwrite, Traytip)
-					if errorCheck
+					if (errorCheck == 1)
 					{
 						errorCheck := 0
 						break
@@ -285,13 +286,13 @@ Loop
 				else if (Action = "Send file to Recycle Bin")
 				{
 					if (Traytip == 1)
-						TrayTip, %APPNAME% - Recycling, %fileName%, 1, 1
+						TrayTip, %APPNAME% - Recycling..., %fileName%, 1, 1
 					recycle(file)
 				}
 				else if (Action = "Delete file")
 				{
 					if (Traytip == 1)
-						TrayTip, %APPNAME% - Deleting, %fileName%, 1, 1
+						TrayTip, %APPNAME% - Deleting..., %fileName%, 1, 1
 					;msgbox, delete it!
 					delete(file)
 				}
@@ -310,7 +311,7 @@ Loop
 						mirrorcopy(file, MirrorDestination, Overwrite, Traytip)
 					else
 						copy(file, Destination, Overwrite, Traytip)
-					if errorCheck
+					if (errorCheck == 1)
 					{
 						errorCheck := 0
 						break
@@ -319,7 +320,7 @@ Loop
 				else if (Action = "Open file")
 				{
 					if (Traytip == 1)
-						TrayTip, %APPNAME%, Opening: %fileName%, 1, 1
+						TrayTip, %APPNAME% - Opening..., %fileName%, 1, 1
 					Run, %file%
 				}
 				else
@@ -334,6 +335,13 @@ Loop
 			}	
 			StringCaseSense, On
 		}
+		if (OneTime == 1 && errorCheck == -1)
+		{
+			IniWrite, 0, rules.ini, %thisRule%, Enabled
+			if (Traytip == 1)
+				TrayTip, %APPNAME%, Disabling rules '%thisRule%'..., 1, 1
+		}
+		errorCheck :=
 	}
 	;msgbox, run
 	Sleep, %SleepTime%
@@ -342,7 +350,7 @@ Loop
 
 SetVars:
 	APPNAME = Belvedere
-	Version = 0.4.5
+	Version = 0.4.6
 	AllSubjects = Name||Extension|Size|Date last modified|Date last opened|Date created|
 	NoDefaultSubject = Name|Extension|Size|Date last modified|Date last opened|Date created|
 	NameVerbs = is||is not|matches one of|does not match one of|contains|does not contain|

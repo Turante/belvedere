@@ -23,7 +23,7 @@ MANAGE:
 	Gui, 1: Add, Button, x92 y382 w30 h30 gRemoveFolder, -
 	Gui, 1: Add, Button, x252 y382 w30 h30 gAddRule, +
 	Gui, 1: Add, Button, x282 y382 w30 h30 gRemoveRule, -
-	Gui, 1: Add, Button, x312 y382 h30 vEditRule gEditRule, Edit Rule
+	Gui, 1: Add, Button, x312 y382 h30 vEditRule gEditRule Default, Edit Rule
 	Gui, 1: Add, Button, x620 y382 h30 vEnableButton gEnableButton, Enable
 	; Generated using SmartGUI Creator 4.0
 	
@@ -240,8 +240,9 @@ AddRule:
 	Gui, 2: Add, Checkbox, x448 y48 vConfirmAction, Confirm Action
 	Gui, 2: Add, Checkbox, x448 y68 vRecursive, Recursive
 	Gui, 2: Add, Checkbox, x448 y88 vMirror, Mirror Structure	; https://github.com/adampash/belvedere/issues/4
-	Gui, 2: Add, Groupbox, x443 y10 w110 h100 BackgroundTrans, Rule Options
-	Gui, 2: Add, Text, x32 y96 w520 h20 BackgroundTrans, __________________________________________________________________________________________
+	Gui, 2: Add, Checkbox, x448 y108 vOneTime, One Time Run		; https://github.com/mshorts/belvedere/issues/54
+	Gui, 2: Add, Groupbox, x443 y10 w110 h120, Rule Options
+	;Gui, 2: Add, Text, x32 y96 w520 h20 BackgroundTrans, __________________________________________________________________________________________
 	Gui, 2: Add, Text, x32 y122 w10 h20 , If
 	Gui, 2: Add, DropDownList, x45 y118 w46 h20 r2 vMatches , ALL||ANY
 	Gui, 2: Add, Text, x96 y122 w240 h20 , of the following conditions are met:
@@ -305,6 +306,7 @@ EditRule:
 	IniRead, ConfirmAction, rules.ini, %ActiveRule%, ConfirmAction
 	IniRead, Recursive, rules.ini, %ActiveRule%, Recursive
 	IniRead, Mirror, rules.ini, %ActiveRule%, Mirror
+	IniRead, OneTime, rules.ini, %ActiveRule%, OneTime
 	Gui, 2: Destroy
 	Gui, 2: +owner1
 	Gui, 2: +toolwindow
@@ -315,8 +317,9 @@ EditRule:
 	Gui, 2: Add, Checkbox, x448 y50 Checked%ConfirmAction% vConfirmAction, Confirm Action
 	Gui, 2: Add, Checkbox, x448 y70 Checked%Recursive% vRecursive, Recursive
 	Gui, 2: Add, Checkbox, x448 y90 Checked%Mirror% vMirror, Mirror Structure
-	Gui, 2: Add, Groupbox, x443 y10 w110 h100 BackgroundTrans, Rule Options
-	Gui, 2: Add, Text, x32 y96 w520 h20 BackgroundTrans, __________________________________________________________________________________________
+	Gui, 2: Add, Checkbox, x448 y110 Checked%OneTime% vOneTime, One Time Run
+	Gui, 2: Add, Groupbox, x443 y10 w110 h120, Rule Options
+	;Gui, 2: Add, Text, x32 y96 w520 h20 BackgroundTrans, __________________________________________________________________________________________
 	Gui, 2: Add, Text, x32 y122 w10 h20 , If
 	StringReplace, thisMatchList, MatchList, %Matches%, %Matches%|
 	Gui, 2: Add, DropDownList, x45 y120 w46 h20 r2 vMatches , %thisMatchList%
@@ -714,6 +717,7 @@ SaveRule:
 	IniWrite, %ConfirmAction%, rules.ini, %RuleName%, ConfirmAction
 	IniWrite, %Recursive%, rules.ini, %RuleName%, Recursive
 	IniWrite, %Mirror%, rules.ini, %RuleName%, Mirror
+	IniWrite, %OneTime%, rules.ini, %RuleName%, OneTime
 	IniWrite, %Matches%, rules.ini, %RuleName%, Matches
 	IniWrite, %GUIAction%, rules.ini, %RuleName%, Action
 	IniWrite, %GUIDestination%, rules.ini, %RuleName%, Destination
@@ -1211,6 +1215,7 @@ RBEnable:
 		GuiControl, 1: Disable, RBEmptyTimeLength
 	}
 return
+
 
 #IfWinActive, Belvedere Rules
 ~LButton::
