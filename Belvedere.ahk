@@ -324,6 +324,35 @@ Loop
 						TrayTip, %APPNAME% - Opening..., %fileName%, 1, 1
 					Run, %file%
 				}
+				else if (Action = "Zip file")
+				{
+					; https://github.com/mshorts/belvedere/issues/68
+					if (Traytip == 1)
+						TrayTip, %APPNAME% - Zipping..., %fileName%, 1, 1
+					FilesToZip := file
+					StringRight, output, Destination, 1
+					if (output != "\")
+						ZipFile =  %Destination%\%A_YYYY%-%A_MM%-%A_DD%.zip
+					else
+						ZipFile =  %Destination%%A_YYYY%-%A_MM%-%A_DD%.zip
+					/*
+					if (Mirror == 1)
+					{
+						StringLen, out1, A_LoopFileDir
+						StringLen, out2, Folder
+						out2-=1
+						count := out1-out2
+						if (count>0)
+						{
+							StringRight, out3, A_LoopFileDir, count
+							MirrorDestination = %Destination%\%out3%
+						}
+					}
+					*/
+					RunWait,"%7z%" u "%ZipFile%" "%FilesToZip%" -mx9,, Hide UseErrorLevel
+					if (ErrorLevel == 0)
+						errorCheck := -1
+				}
 				else
 				{
 					if (Traytip == 1)
@@ -351,7 +380,7 @@ Loop
 
 SetVars:
 	APPNAME = Belvedere
-	Version = 0.4.6
+	Version = 0.4.7
 	AllSubjects = Name||Extension|Size|Date last modified|Date last opened|Date created|
 	NoDefaultSubject = Name|Extension|Size|Date last modified|Date last opened|Date created|
 	NameVerbs = is||is not|matches one of|does not match one of|contains|does not contain|
@@ -360,8 +389,8 @@ SetVars:
 	NoDefaultNumVerbs = is|is not|is greater than|is less than|
 	DateVerbs = is in the last||is not in the last| ; removed is||is not| for now... needs more work implementing
 	NoDefaultDateVerbs = is in the last|is not in the last|
-	AllActions = Move file||Rename file|Send file to Recycle Bin|Delete file|Copy file|Open file|
-	AllActionsNoDefault = Move file|Rename file|Send file to Recycle Bin|Delete file|Copy file|Open file|
+	AllActions = Move file||Rename file|Send file to Recycle Bin|Delete file|Copy file|Open file|Zip file|
+	AllActionsNoDefault = Move file|Rename file|Send file to Recycle Bin|Delete file|Copy file|Open file|Zip file|
 	SizeUnits = MB||KB
 	NoDefaultSizeUnits = MB|KB|
 	DateUnits = minutes||hours|days|weeks
@@ -377,6 +406,7 @@ SetVars:
 	FileInstall, resources\both.png, resources\both.png
 	Menu, TRAY, Icon, resources\belvedere.ico
 	BelvederePNG = resources\both.png
+	7z = %A_ScriptDir%\includes\7za.exe
 	Sleep 200
 return
 
@@ -400,6 +430,7 @@ TRAYMENU:
 	;Menu,TRAY,Add,&Help,HELP
 	Menu,TRAY,Add
 	Menu,TRAY,Add,&About...,ABOUT
+	Menu,TRAY,Add,&Reload,Reloadz
 	Menu,TRAY,Add,E&xit,EXIT
 	Menu,Tray,Tip,%APPNAME% %Version%
 	;Menu,TRAY,Icon,resources\tk.ico
@@ -446,6 +477,9 @@ ABOUT:
 	Gui,4: Add, Text, xs Center w260 gWCHOMEPAGE, Icon design by What Cheer
 	Gui,4: Show, AutoSize, About Belvedere
 Return
+
+Reloadz:
+Reload
 
 #Include includes\verbs.ahk
 #Include includes\subjects.ahk

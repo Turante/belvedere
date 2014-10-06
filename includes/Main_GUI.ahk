@@ -606,6 +606,14 @@ SetDestination:
 		GuiControl, 2: Hide, GUIDestination
 		GuiControl, 2: Hide, Overwrite
 	}
+	else if (GUIAction = "Zip file")
+	{
+		GuiControl, 2: , ActionTo, to:
+		GuiControl, 2: Show, ActionTo
+		GuiControl, 2: Show, GUIDestination
+		GuiControl, 2: Hide, GUIChooseFolder
+		GuiControl, 2: Hide, Overwrite
+	}
 return
 
 RemoveRule:
@@ -1046,18 +1054,21 @@ TESTMatches:
 		;msgbox, %result%
 		if result
 		{
-			StringLen, out1, A_LoopFileDir
-			StringLen, out2, ActiveFolder
-			count := out1-out2-1
-			if (count>0)
+			if (Mirror == 1)
 			{
-				mir++
-				StringRight, out3, A_LoopFileDir, count
-				fol = %GUIDestination%\%out3%
-				if mirr is space
-					mirr = %fol%
-				else
-					mirr = %mirr%|%fol%
+				StringLen, out1, A_LoopFileDir
+				StringLen, out2, ActiveFolder
+				count := out1-out2-1
+				if (count>0)
+				{
+					mir++
+					StringRight, out3, A_LoopFileDir, count
+					fol = %GUIDestination%\%out3%
+					if mirr is space
+						mirr = %fol%
+					else
+						mirr = %mirr%|%fol%
+				}
 			}
 			results++
 			if matchFiles is space
