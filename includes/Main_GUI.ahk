@@ -5,17 +5,17 @@ MANAGE:
 	
 	;Items found of First Tab
 	Gui, Tab, 1
-	Gui, 1: Add, ListView, NoSortHdr x62 y52 w175 h310 vFolders gListRules,Folders|Path
+	Gui, 1: Add, ListView, NoSortHdr x62 y52 w175 h310 vFolders gListRules, Folders|Path
 	ListFolders := SubStr(Folders, 1, -1)
 	if (ListFolders != "ERROR")
 	{
 		Loop, Parse, ListFolders, |
 		{
 			SplitPath, A_LoopField, FileName
-			LV_Add(0, FileName, A_LoopField)
+			LV_Add(0, FileName,A_LoopField)
 		}
-		LV_ModifyCol(1, 171)
-		LV_ModifyCol(2, 0)
+		LV_ModifyCol(1, 80)
+		LV_ModifyCol(2, 200)
 	}
 
 	Gui, 1: Add, ListView, NoSortHdr x252 y52 w410 h310 vRules gSetActive, Enabled|Rules
@@ -64,13 +64,15 @@ MANAGE:
 	;Items found on Third Tab
 	IniRead, Sleep, rules.ini, Preferences, Sleeptime
 	IniRead, Traytip, rules.ini, Preferences, Traytip
+	IniRead, Loghistory, rules.ini, Preferences, Loghistory
 	Gui, Tab, 3
 	Gui, 1: Add, Text, x62 y62 w60 h20 , Sleeptime:
 	Gui, 1: Add, Edit, x120 y60 w100 h20 Number vSleep, %Sleep%
 	Gui, 1: Add, Text, x225 y62, (Time in milliseconds, 1 second = 1000 milliseconds)
 	Gui, 1: Add, Text, x62 y90, TrayTip
 	Gui, 1: Add, Checkbox, x120 y90 vTraytip Checked%Traytip%, (Shows a popup whenever a file is being processed)
-	
+	Gui, 1: Add, Text, x62 y120, Log History
+	Gui, 1: Add, Checkbox, x120 y120 vLoghistory Checked%Loghistory%, (Whenever a file is processed, append to log.txt)
 	Gui, 1: Add, Button, x62 y382 h30 vSavePrefs gSavePrefs, Save Preferences
 	Gui, 1: Show, h443 w724, %APPNAME% Rules
 Return
@@ -162,7 +164,7 @@ EnableButton:
 return
 
 AddFolder:
-	FileSelectFolder, NewFolder,
+	FileSelectFolder, NewFolder,,, Select a folder to monitor:
 	if (NewFolder = "")
 	{
 		return
@@ -608,7 +610,7 @@ SetDestination:
 	}
 	else if (GUIAction = "Zip file")
 	{
-		GuiControl, 2: , ActionTo, to:
+		GuiControl, 2: , ActionTo, to folder:
 		GuiControl, 2: Show, ActionTo
 		GuiControl, 2: Show, GUIDestination
 		GuiControl, 2: Hide, GUIChooseFolder
@@ -1073,7 +1075,7 @@ TESTMatches:
 			results++
 			if matchFiles is space
 				matchFiles = %fileName%
-			if fileName is not space
+			else
 				matchFiles = %matchFiles%|%fileName%
 		}
 	}
@@ -1115,6 +1117,7 @@ SavePrefs:
 	SleepTime := Sleep
 	IniWrite, %Sleep%, rules.ini, Preferences, Sleeptime
 	IniWrite, %Traytip%, rules.ini, Preferences, Traytip
+	IniWrite, %Loghistory%, rules.ini, Preferences, Loghistory
 	MsgBox,64,Saved Settings, Your settings have been saved!
 	reload
 return

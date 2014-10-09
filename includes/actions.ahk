@@ -103,3 +103,8 @@ recycle(file)
 	if (ErrorLevel == 0)
 		errorCheck := -1
 }
+
+log(file, destination, mode, logfile)
+{
+	FileAppend, `n%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_sec%:%A_MSec%`t[%mode%]`t%file%`t-->`t%destination%, %logfile%
+}

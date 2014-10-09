@@ -23,6 +23,7 @@ IniRead, FolderNames, rules.ini, Folders, FolderNames
 IniRead, AllRuleNames, rules.ini, Rules, AllRuleNames
 IniRead, SleepTime, rules.ini, Preferences, SleepTime
 IniRead, Traytip, rules.ini, Preferences, Traytip
+IniRead, Loghistory, rules.ini, Preferences, Loghistory
 if (AllRuleNames = "ERROR")
 {
 	AllRuleNames=
@@ -283,12 +284,23 @@ Loop
 						errorCheck := 0
 						break
 					}
+					if ((errorCheck == -1) && (Loghistory == 1))
+					{
+						if (Mirror = 1)
+							log(file, MirrorDestination, "Move/Rename", logfile)
+						else
+							log(file, destination, "Move/Rename", logfile)
+					}
 				}
 				else if (Action = "Send file to Recycle Bin")
 				{
 					if (Traytip == 1)
 						TrayTip, %APPNAME% - Recycling..., %fileName%, 1, 1
 					recycle(file)
+					if ((errorCheck == -1) && (Loghistory == 1))
+					{
+						log(file, destination, "Recycle", logfile)
+					}
 				}
 				else if (Action = "Delete file")
 				{
@@ -296,6 +308,10 @@ Loop
 						TrayTip, %APPNAME% - Deleting..., %fileName%, 1, 1
 					;msgbox, delete it!
 					delete(file)
+					if ((errorCheck == -1) && (Loghistory == 1))
+					{
+						log(file, destination, "Delete", logfile)
+					}
 				}
 				else if (Action = "Copy file")
 				{
@@ -317,12 +333,20 @@ Loop
 						errorCheck := 0
 						break
 					}
+					if ((errorCheck == -1) && (Loghistory == 1))
+					{
+						log(file, destination, "Copy File", logfile)
+					}
 				}
 				else if (Action = "Open file")
 				{
 					if (Traytip == 1)
 						TrayTip, %APPNAME% - Opening..., %fileName%, 1, 1
 					Run, %file%
+					if ((errorCheck == -1) && (Loghistory == 1))
+					{
+						log(file, destination, "Open File", logfile)
+					}
 				}
 				else if (Action = "Zip file")
 				{
@@ -352,12 +376,17 @@ Loop
 					RunWait,"%7z%" u "%ZipFile%" "%FilesToZip%" -mx9,, Hide UseErrorLevel
 					if (ErrorLevel == 0)
 						errorCheck := -1
+					if ((errorCheck == -1) && (Loghistory == 1))
+					{
+						log(file, ZipFile, "Zip File", logfile)
+					}
 				}
 				else
 				{
 					if (Traytip == 1)
 						TrayTip, %APPNAME%, No action to take..., 1, 1
 				}
+				Sleep 50
 			}
 			else
 			{
@@ -370,6 +399,11 @@ Loop
 			IniWrite, 0, rules.ini, %thisRule%, Enabled
 			if (Traytip == 1)
 				TrayTip, %APPNAME%, Disabling rules '%thisRule%'..., 1, 1
+			if (Loghistory == 1)
+			{
+				StringTrimRight, output, Folder, 1
+				log(thisRule, output, "Rule Off", logfile)
+			}
 		}
 		errorCheck :=
 	}
@@ -380,7 +414,7 @@ Loop
 
 SetVars:
 	APPNAME = Belvedere
-	Version = 0.4.7
+	Version = 0.4.8
 	AllSubjects = Name||Extension|Size|Date last modified|Date last opened|Date created|
 	NoDefaultSubject = Name|Extension|Size|Date last modified|Date last opened|Date created|
 	NameVerbs = is||is not|matches one of|does not match one of|contains|does not contain|
@@ -407,6 +441,7 @@ SetVars:
 	Menu, TRAY, Icon, resources\belvedere.ico
 	BelvederePNG = resources\both.png
 	7z = %A_ScriptDir%\includes\7za.exe
+	logfile = %A_ScriptDir%\log.txt
 	Sleep 200
 return
 
@@ -417,6 +452,7 @@ BuildINI:
 		IniWrite,%A_Space%,rules.ini, Rules, AllRuleNames
 		IniWrite,300000,rules.ini, Preferences, Sleeptime
 		IniWrite,0,rules.ini, Preferences, Traytip
+		IniWrite,0,rules.ini, Preferences, Loghistory
 		IniWrite,0,rules.ini, Preferences, RBEnable
 	}
 return
